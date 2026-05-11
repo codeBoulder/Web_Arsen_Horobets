@@ -2,17 +2,31 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const path = require('path');
+const fs = require('fs');
 
-let db;
-try {
-    const serviceAccount = require('./serviceAccountKey.json');
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-    db = admin.firestore();
-    console.log("✅ Firebase Admin ініціалізовано успішно");
-} catch (err) {
-    console.error("❌ КРИТИЧНА ПОМИЛКА: Не вдалося завантажити serviceAccountKey.json або ініціалізувати Firebase:");
-    console.error(err.message);
+let serviceAccount;
+
+if (process.env.FIREBASE_CONFIG) {
+    serviceAccount = JSON.parse(process.env.FIREBASE_CONFIG);
+} else {
+    // Якщо локально
+    const localPath = path.join(__dirname, 'serviceAccountKey.json');
+    if (fs.existsSync(localPath)) {
+        serviceAccount = require(localPath);
+    } else {
+        console.error("❌ Ключ не знайдено ні в ENV, ні в файлі.");
+    }
 }
+
+if (!admin.apps.length && serviceAccount) {
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: serviceAccount.project_id
+    });
+    console.log("✅ Firebase успішно ініціалізовано");
+}
+
+const db = admin.firestore();
 
 const app = express();
 app.use(cors());
