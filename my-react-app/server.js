@@ -66,7 +66,10 @@ app.get('/api/orders/:userId', async (req, res) => {
     }
 });
 
-app.get('/*', (req, res) => {
+app.use((req, res, next) => {
+    if (req.url.startsWith('/api')) {
+        return res.status(404).json({ error: "Маршрут API не знайдено" });
+    }
     res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
