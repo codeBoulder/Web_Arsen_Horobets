@@ -6,12 +6,64 @@ import {
   signOut 
 } from "firebase/auth";
 
+const MyAccount = ({ user }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user) return;
+
+      try {
+
+        const response = await fetch(`/api/orders/${user.uid}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          setOrders(data);
+        } else {
+          console.error("Помилка від сервера:", data.error);
+        }
+      } catch (e) {
+        console.error("Помилка з'єднання: ", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user]);
+
+  return (
+    <div>
+      <h2>Мої замовлення</h2>
+      {loading ? (
+        <p>Завантаження...</p>
+      ) : orders.length === 0 ? (
+        <p>У вас ще немає замовлень.</p>
+      ) : (
+        <ul>
+          {orders.map((order) => (
+            <li key={order.id}>
+              <strong>Замовлення ID:</strong> {order.id} <br />
+              <strong>Сума:</strong> {order.total} грн <br />
+              <strong>Товари:</strong> {order.items.length} шт.
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+export default MyAccount;
+
 const Profile = ({ user }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
 
-  // Крок 5: Реалізація реєстрації та входу [cite: 275]
+
   const handleAuth = async (e) => {
     e.preventDefault();
     try {
@@ -26,7 +78,6 @@ const Profile = ({ user }) => {
     }
   };
 
-  // Крок 6: Додавання функціональності виходу [cite: 276]
   const handleLogout = () => signOut(auth);
 
   return (
@@ -35,7 +86,6 @@ const Profile = ({ user }) => {
       
       <div className="account-grid">
         {user ? (
-          // Відображення профілю після входу [cite: 277, 278]
           <div className="account-card profile">
             <div className="avatar" style={{background: '#4f46e5', color: '#fff', width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px'}}>
               {user.email.substring(0, 2).toUpperCase()}
@@ -48,7 +98,6 @@ const Profile = ({ user }) => {
             </button>
           </div>
         ) : (
-          // Форми для реєстрації та входу [cite: 272-274]
           <div className="account-card profile">
             <form onSubmit={handleAuth} style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
               <input 

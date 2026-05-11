@@ -53,7 +53,6 @@ const Catalog = ({ onAddToCart }) => {
           filteredBooks.map(book => (
             <article className="book-card" key={book.id}>
               <div className="img-wrapper">
-                {/* Якщо в БД img — це просто назва файлу, додаємо шлях */}
                 <img src={process.env.PUBLIC_URL + '/' + book.img} alt={book.title} />
               </div>
               
